@@ -317,8 +317,9 @@ def test_model_and_metrics_are_loaded_once_at_startup(resources, tmp_path):
 @pytest.mark.parametrize("origin", [
     "http://localhost:5173", "http://127.0.0.1:5173",
     "http://localhost:4173", "http://127.0.0.1:4173",
+    "https://smartfactory-ai-ma2i.onrender.com",
 ])
-def test_cors_allows_the_local_frontend_to_submit_predictions(client, origin):
+def test_cors_allows_configured_frontends_to_submit_predictions(client, origin):
     response = client.options(
         "/api/predict",
         headers={
@@ -332,6 +333,20 @@ def test_cors_allows_the_local_frontend_to_submit_predictions(client, origin):
     assert response.headers["access-control-allow-origin"] == origin
     assert "POST" in response.headers["access-control-allow-methods"]
     assert "content-type" in response.headers["access-control-allow-headers"].lower()
+
+
+@pytest.mark.parametrize("origin,allowed", [
+    ("https://smartfactory-ai-ma2i.onrender.com", True),
+    ("https://smartfactory-ai-ma2i.onrender.com.unconfigured.example", False),
+])
+def test_health_cors_allows_only_the_exact_hosted_frontend(client, origin, allowed):
+    response = client.get("/api/health", headers={"Origin": origin})
+
+    assert response.status_code == 200
+    if allowed:
+        assert response.headers["access-control-allow-origin"] == origin
+    else:
+        assert "access-control-allow-origin" not in response.headers
 
 
 def test_cors_does_not_allow_an_unconfigured_origin(client):

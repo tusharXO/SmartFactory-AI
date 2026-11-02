@@ -82,6 +82,7 @@ def create_app(
         allow_origins=[
             "http://127.0.0.1:5173", "http://localhost:5173",
             "http://127.0.0.1:4173", "http://localhost:4173",
+            "https://smartfactory-ai-ma2i.onrender.com",
         ],
         allow_methods=["GET", "POST"],
         allow_headers=["Content-Type"],

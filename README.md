@@ -150,6 +150,44 @@ Open `http://127.0.0.1:4173`. FastAPI explicitly allows browser origins on local
 development port 5173 and preview port 4173, using either `127.0.0.1` or
 `localhost`. Chart code loads separately from the main dashboard bundle.
 
+### Render deployment configuration
+
+The backend CORS allowlist also includes the hosted frontend origin
+`https://smartfactory-ai-ma2i.onrender.com`. If the frontend address changes,
+update `allow_origins` in `backend/app/main.py` and redeploy the backend.
+Origins contain the scheme and hostname, without a path or trailing slash.
+
+For the Render Python Web Service, set **Root Directory** to `backend` and
+use this **Build Command** to prepare the generated files that Git ignores:
+
+```bash
+python -m pip install -r requirements.txt && python scripts/etl.py --download && python -m scripts.train
+```
+
+These commands run in Render's Linux build environment. Set the **Start
+Command** to:
+
+```bash
+python -m uvicorn app.main:app --host 0.0.0.0 --port $PORT
+```
+
+Match the verified runtime with Render's `PYTHON_VERSION=3.14.7` setting.
+The application itself has no required backend environment variables.
+The database and model are prepared during the build and read during requests;
+training is not performed on API startup or for each prediction.
+
+For the frontend Static Site, set **Root Directory** to `frontend`,
+**Build Command** to `npm i && npm run build`, **Publish Directory** to `dist`,
+and `VITE_API_BASE_URL` to
+`https://smartfactory-ai-backend-8zs6.onrender.com/api`. Rebuild the frontend
+after changing that environment variable.
+
+Push backend source updates to the branch linked in Render. Automatic deploys
+can deploy them; otherwise use **Manual Deploy > Deploy latest commit** on
+the backend service. A restart alone does not deploy new source. Check
+`/api/health` for `status: "ok"` and all three readiness fields set to `true`,
+then reload the dashboard and try a prediction.
+
 ## Data and ETL
 
 Source: [AI4I 2020 Predictive Maintenance Dataset, UCI Machine Learning Repository](https://archive.ics.uci.edu/dataset/601/ai4i+2020+predictive+maintenance+dataset)
@@ -303,11 +341,12 @@ real-world failure probabilities. The data does not support remaining-life or
 time-to-failure estimates. Low precision and many false alarms limit this
 baseline's usefulness for operational alerting.
 
-This local demo has no authentication, live ingestion, model monitoring, or
-production deployment. Possible later work includes a second classifier,
+This portfolio demo has no authentication, live ingestion, or model monitoring.
+Possible later work includes a second classifier,
 validation-based threshold selection with explicit alert costs, calibration,
 and representative real-data evaluation. These are proposals, not completed
-features. Deployment is optional and deferred.
+features. Render deployment configuration is documented above; check backend
+readiness after each deployment before sharing the dashboard.
 
 See [the project plan](PROJECT_PLAN.md) for milestone scope and
 [portfolio notes](docs/PORTFOLIO.md) for truthful resume bullets, a 90-second
