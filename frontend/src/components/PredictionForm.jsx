@@ -110,12 +110,14 @@ export default function PredictionForm({ modelReady = null }) {
         <div>
           <p className="eyebrow">MODEL INFERENCE</p>
           <h2 className="panel-title" id="prediction-title">Failure classifier</h2>
-          <p className="panel-description">Classify a set of operating measurements.</p>
+          <p className="panel-description" id="prediction-guidance">
+            Use kelvin for temperatures and whole numbers for rpm and tool wear.
+          </p>
         </div>
         <span className="badge badge-neutral">6 inputs</span>
       </header>
 
-      <form onSubmit={handleSubmit} noValidate aria-busy={submitting}>
+      <form onSubmit={handleSubmit} noValidate aria-busy={submitting} aria-describedby="prediction-guidance">
         <div className="prediction-example">
           <span className="field-hint">Example inputs, ready to edit</span>
           <button className="button button-ghost" type="button" onClick={resetExample} disabled={submitting}>

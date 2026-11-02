@@ -19,7 +19,7 @@ async function request(path, { signal, method = 'GET', body } = {}) {
     })
   } catch (error) {
     if (error.name === 'AbortError') throw error
-    throw new ApiError('Cannot reach the API. Check that the backend is running, then retry.')
+    throw new ApiError('Cannot connect to the data service. Please try again.')
   }
   let data
   try { data = await response.json() } catch {
@@ -27,7 +27,13 @@ async function request(path, { signal, method = 'GET', body } = {}) {
   }
   if (!response.ok) {
     const details = Array.isArray(data.detail) ? data.detail : []
-    const message = typeof data.detail === 'string' ? data.detail
+    const unavailableMessage = path === '/predict'
+      ? 'Predictions are temporarily unavailable. Please try again later.'
+      : path === '/model-metrics'
+        ? 'Model evaluation is temporarily unavailable. Please try again later.'
+        : 'The dataset is temporarily unavailable. Please retry.'
+    const message = response.status === 503 ? unavailableMessage
+      : typeof data.detail === 'string' ? data.detail
       : details.length ? 'Check the highlighted fields and try again.' : 'The request failed. Please retry.'
     throw new ApiError(message, response.status, details)
   }

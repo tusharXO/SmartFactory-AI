@@ -85,11 +85,14 @@ export default function AnalyticsCharts({ data, loading, error, onRetry }) {
                   </BarChart>
                 </ResponsiveContainer>
               </div>
-              <table className="sr-only">
-                <caption>Observation counts by product-quality variant</caption>
-                <thead><tr><th scope="col">Type</th><th scope="col">Observations</th></tr></thead>
-                <tbody>{distribution.map((row) => <tr key={row.type}><th scope="row">{row.type}</th><td>{formatNumber(row.count)}</td></tr>)}</tbody>
-              </table>
+              {/* Clip the wrapper so the native table's minimum width cannot widen the page. */}
+              <div className="sr-only">
+                <table>
+                  <caption>Observation counts by product-quality variant</caption>
+                  <thead><tr><th scope="col">Type</th><th scope="col">Observations</th></tr></thead>
+                  <tbody>{distribution.map((row) => <tr key={row.type}><th scope="row">{row.type}</th><td>{formatNumber(row.count)}</td></tr>)}</tbody>
+                </table>
+              </div>
             </div>
 
             <div className="chart-block">
@@ -113,11 +116,13 @@ export default function AnalyticsCharts({ data, loading, error, onRetry }) {
                   </BarChart>
                 </ResponsiveContainer>
               </div>
-              <table className="sr-only">
-                <caption>Actual labeled failures by product-quality variant</caption>
-                <thead><tr><th scope="col">Type</th><th scope="col">Labeled failures</th><th scope="col">Failure rate</th></tr></thead>
-                <tbody>{failureRates.map((row) => <tr key={row.type}><th scope="row">{row.type}</th><td>{formatNumber(row.failure_count)}</td><td>{formatPercent(row.failure_rate)}</td></tr>)}</tbody>
-              </table>
+              <div className="sr-only">
+                <table>
+                  <caption>Actual labeled failures by product-quality variant</caption>
+                  <thead><tr><th scope="col">Type</th><th scope="col">Labeled failures</th><th scope="col">Failure rate</th></tr></thead>
+                  <tbody>{failureRates.map((row) => <tr key={row.type}><th scope="row">{row.type}</th><td>{formatNumber(row.failure_count)}</td><td>{formatPercent(row.failure_rate)}</td></tr>)}</tbody>
+                </table>
+              </div>
             </div>
           </div>
           <p className="chart-footnote">Type describes product quality. Rows are observations, not unique machines.</p>

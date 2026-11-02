@@ -222,5 +222,59 @@ test('works on a narrow viewport with contained table scrolling and real predict
   await page.evaluate(() => window.scrollTo(0, 0))
   await expect(page.getByRole('heading', { level: 1 })).toBeInViewport()
   await page.screenshot({ path: testInfo.outputPath('dashboard-mobile.png'), fullPage: true })
+  await page.setViewportSize({ width: 320, height: 740 })
+  const narrowWidth = await page.evaluate(() => ({
+    viewport: document.documentElement.clientWidth,
+    document: document.documentElement.scrollWidth,
+  }))
+  expect(narrowWidth.document).toBeLessThanOrEqual(narrowWidth.viewport + 1)
+  await expect(page.getByRole('table', { name: 'Observation counts by product-quality variant' })).toHaveCount(1)
+  await expect(page.getByRole('table', { name: 'Actual labeled failures by product-quality variant' })).toHaveCount(1)
   expect(errors).toEqual([])
+})
+
+test('keeps section navigation in sync with direct links and browser history', async ({ page }) => {
+  const nav = page.getByRole('navigation', { name: 'Dashboard navigation' })
+  const model = nav.getByRole('link', { name: 'Model evaluation', exact: true })
+  const prediction = nav.getByRole('link', { name: 'Prediction', exact: true })
+  const observations = nav.getByRole('link', { name: 'Observations', exact: true })
+  await page.goto('/#model')
+  await expect(model).toHaveAttribute('aria-current', 'location')
+  await prediction.click()
+  await expect(page).toHaveURL(/#prediction$/)
+  await expect(prediction).toHaveAttribute('aria-current', 'location')
+  await observations.click()
+  await expect(observations).toHaveAttribute('aria-current', 'location')
+
+  await page.goBack()
+  await expect(page).toHaveURL(/#prediction$/)
+  await expect(prediction).toHaveAttribute('aria-current', 'location')
+  await expect(observations).not.toHaveAttribute('aria-current')
+  await page.goBack()
+  await expect(model).toHaveAttribute('aria-current', 'location')
+  await page.goForward()
+  await expect(prediction).toHaveAttribute('aria-current', 'location')
+})
+
+test('shows unavailable data honestly and reconnects to the real API through Refresh data', async ({ page, request }) => {
+  const overview = await getApi(request, 'overview')
+  let offline = true
+  // Simulate transport failure only; recovery goes to the real local backend.
+  await page.route('**/api/**', async (route) => {
+    if (offline) await route.abort('connectionrefused')
+    else await route.continue()
+  })
+  await page.goto('/')
+  await expect(page.locator('.connection-status')).toHaveText('API unavailable')
+  await expect(page.getByRole('alert').filter({ hasText: 'Backend connection unavailable' })).toBeVisible()
+  await expect(metricCard(page, 'Total observations').locator('.metric-value')).toHaveText('—')
+  await expect(observationIds(page)).toHaveCount(0)
+
+  offline = false
+  await page.getByRole('button', { name: 'Refresh data', exact: true }).click()
+  await expect(page.locator('.connection-status')).toHaveText('API connected')
+  await expect(metricCard(page, 'Total observations').locator('.metric-value')).toHaveText(number(overview.total_observations))
+  await expect(page.locator('#analytics svg.recharts-surface')).toHaveCount(2)
+  await expect(observationIds(page)).toHaveCount(10)
+  await expect(page.getByRole('alert')).toHaveCount(0)
 })
