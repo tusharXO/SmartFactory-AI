@@ -3,11 +3,11 @@
 A portfolio project for exploring synthetic industrial equipment data and
 classifying operating measurements with machine learning.
 
-**Current progress:** Milestone 3 — working FastAPI backend. The equipment CSV
-is validated and stored in SQLite, and an offline command trains and evaluates
-a failure classifier with saved preprocessing. Six API endpoints serve dataset
-analytics, filtered records, evaluation results, and predictions. The frontend
-is a starter page; the dashboard is the next milestone. See
+**Current progress:** Milestone 4 — working React dashboard. The local demo
+connects dataset analytics, two charts, a validated prediction form, filtered
+records, and measured model evaluation to FastAPI. The underlying SQLite data
+and trained classifier are reproducible through offline ETL/training commands.
+Final documentation and portfolio polish are the next milestone. See
 [PROJECT_PLAN.md](PROJECT_PLAN.md) for the scope and build order.
 
 ## Local setup (VS Code + PowerShell)
@@ -73,8 +73,8 @@ In the frontend terminal:
 npm run dev
 ```
 
-Open [the starter page](http://127.0.0.1:5173). These two development servers
-run separately; the frontend will call the backend when we build the dashboard.
+Open [the dashboard](http://127.0.0.1:5173). These two development servers
+run separately; the React dashboard calls the FastAPI backend.
 Press `Ctrl+C` in each terminal to stop its server.
 
 ## Dataset ETL (Milestone 1)
@@ -314,8 +314,9 @@ artifacts. SQLite queries use a fresh, read-only connection per request.
 - Invalid measurement fields, filters, or pagination return HTTP 422 with
   field details. Numeric overflow is also reported as a validation error.
 
-Browser requests are permitted from `http://127.0.0.1:5173` and
-`http://localhost:5173` through explicit local
+Browser requests are permitted from the local Vite development origins on
+port 5173 and production-preview origins on port 4173 (both `127.0.0.1` and
+`localhost`) through explicit local
 [CORS configuration](https://fastapi.tiangolo.com/tutorial/cors/).
 
 If updating an existing checkout, refresh the backend dependencies once:
@@ -327,6 +328,48 @@ python -m pip install -r requirements.txt
 The pinned test client dependency is [HTTPX2](https://pypi.org/project/httpx2/),
 which the installed Starlette version supports without the older HTTPX
 deprecation warning.
+
+## React dashboard (Milestone 4)
+
+With the database populated and model trained, start both development servers
+as described above, then open `http://127.0.0.1:5173`.
+
+- Four summary cards show API-backed observation/failure counts, failure rate,
+  and quality-variant count. Loading or unavailable data is not shown as zero.
+- Two Recharts bar charts show observations by quality type and actual labeled
+  failure rates. Fractional API rates are formatted as percentages in the UI.
+- The prediction form accepts all six operating measurements. Editable example
+  inputs are identified as examples; a result appears only after inference.
+  Submitting disables the controls, and editing measurements clears old output.
+- The observations table combines quality-type and actual-label filters with
+  ten-row server pagination. Changing a filter returns to the first page.
+  The table scrolls horizontally on small screens without widening the page.
+- Model evaluation displays the saved precision, recall, F1, average precision,
+  confusion matrix, and actual false-alarm/missed-failure counts.
+
+Sections have independent loading, error, retry, and empty states. The header
+shows API readiness, and **Refresh data** reloads analytics, readiness, model
+evaluation, and the current table query. Predictions are unavailable when the
+API reports that the model is not ready. Dataset attribution, license, and
+repository links are included in the footer.
+
+### API address and production preview
+
+The browser API base defaults to `http://127.0.0.1:8000/api`. To change it, copy
+`frontend/.env.example` to `frontend/.env.local`, set `VITE_API_BASE_URL`, and
+restart Vite. This is public browser configuration, not a place for secrets.
+The production build includes the configured value at build time.
+
+From `frontend/`, with the backend running, preview the built app locally:
+
+```powershell
+npm run build
+npm run preview
+```
+
+Open `http://127.0.0.1:4173`. Chart code is loaded separately from the main
+dashboard bundle. Development and built-preview browser checks both confirmed
+the real dataset counts, chart rendering, and saved-model predictions.
 
 ## Setup checks
 
@@ -343,13 +386,26 @@ validation and rollback, strict prediction inputs, leakage prevention,
 training-only preprocessing, held-out metrics, model reload, and reproducibility.
 API tests use FastAPI TestClient with temporary SQLite/model resources to check
 all six routes, filtered pagination, empty/missing resources, startup caching,
-validation errors, and local CORS. All 142 backend tests pass.
+validation errors, and local development/preview CORS. All 144 backend tests pass.
 
 In the frontend terminal:
 
 ```powershell
 npm run build
+npm run test:e2e
 ```
+
+The seven Playwright browser checks use the real local API, database, and saved
+model for counts, charts, predictions, filtering, and pagination. Controlled
+test responses exercise only missing-model, error, and empty states. Desktop
+and 390px-wide screenshots are captured in `frontend/test-results/` (ignored).
+
+Browser checks expect the default local ports 8000 and 5173 and require ETL
+and training to have been run. The test runner reuses existing development
+servers or starts its own and stops only the servers it started. On Windows it
+uses installed Microsoft Edge in headless mode. Other environments can install
+Chromium using `npx playwright install chromium`; see
+[Playwright browser setup](https://playwright.dev/docs/browsers).
 
 The frontend build is written to `frontend/dist/`. Local environments,
 dependencies, builds, raw data, databases, and trained models are ignored by Git.
@@ -375,7 +431,7 @@ execution policy.
 
 - Backend: Python, FastAPI, Pydantic, Pandas, scikit-learn, SQLite, joblib.
 - Frontend: React, Vite, Tailwind CSS, Recharts.
-- Tests: pytest for ETL and ML, plus FastAPI TestClient with HTTPX2 for API checks.
+- Tests: pytest for ETL and ML, FastAPI TestClient with HTTPX2, and Playwright browser checks.
 
 ## References
 

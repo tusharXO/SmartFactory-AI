@@ -1,6 +1,6 @@
 # SmartFactory AI — Project Blueprint
 
-> **Status:** Milestone 3 complete. ETL, the evaluated baseline classifier, and all six FastAPI endpoints work locally; the React dashboard is next.  
+> **Status:** Milestone 4 complete. The responsive React dashboard works with the real local APIs, data, and saved model; final polish and portfolio documentation are next.  
 > **Working style:** We will build this together, one milestone at a time, in VS Code with Codex.  
 > **Primary goal:** A small, finished, explainable project aligned with Magna's **Intern, Smart Factory Solutions** role: Python, ETL, data analysis, ML, SQL, APIs, React, and visualizations.
 
@@ -283,13 +283,15 @@ In the API, `predicted_failure` is an integer and `model_score` is a number; the
 
 ### Milestone 4 — React dashboard
 
-- [ ] Build responsive header + KPI cards.
-- [ ] Build two useful charts.
-- [ ] Build prediction form and result state.
-- [ ] Build filterable, paginated observations table.
-- [ ] Display model metrics, loading/error/empty states, and attribution.
+- [x] Build responsive header + KPI cards.
+- [x] Build two useful charts.
+- [x] Build prediction form and result state.
+- [x] Build filterable, paginated observations table.
+- [x] Display model metrics, loading/error/empty states, and attribution.
 
 **Done when:** the entire demo works in a browser, with real backend data and no fabricated dashboard numbers.
+
+**Verified:** The dashboard displays actual 10,000/339/3.39%/3 KPIs, two API-backed charts, the saved model's prediction result, server-filtered ten-row pages, and the real evaluation report. Editable example inputs are labeled, invalid measurements are rejected, and editing clears stale results. Seven Playwright checks pass against the real local API, including controlled error/empty/missing-model states. Actual Edge checks at 1440px and 390px found no page errors or document overflow. The frontend production build passes with charts in a separate bundle; built preview on port 4173 also rendered the real counts/charts and completed inference. Explicit CORS now includes development and preview origins. All 144 backend tests pass. Work is on `feature/milestone-4-dashboard`, based on the completed API branch; README documents startup, public API configuration, browser checks, and preview.
 
 ### Milestone 5 — Polish + portfolio proof
 
