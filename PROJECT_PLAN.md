@@ -1,6 +1,6 @@
 # SmartFactory AI — Project Blueprint
 
-> **Status:** Milestone 4 complete. The responsive React dashboard works with the real local APIs, data, and saved model; final polish and portfolio documentation are next.  
+> **Status:** Milestone 5 complete. The local MVP is verified from a clean copy, with final setup instructions, real screenshots, measured evaluation, and portfolio notes. Optional deployment is deferred.
 > **Working style:** We will build this together, one milestone at a time, in VS Code with Codex.  
 > **Primary goal:** A small, finished, explainable project aligned with Magna's **Intern, Smart Factory Solutions** role: Python, ETL, data analysis, ML, SQL, APIs, React, and visualizations.
 
@@ -295,13 +295,15 @@ In the API, `predicted_failure` is an integer and `model_score` is a number; the
 
 ### Milestone 5 — Polish + portfolio proof
 
-- [ ] Test the full flow after a clean setup from the README.
-- [ ] Improve layout, mobile responsiveness, form usability, and error messages.
-- [ ] Add README: problem, architecture, setup, dataset license, evaluation, screenshots, limitations.
-- [ ] Record real metrics and screenshots for GitHub and interview discussion.
-- [ ] Optional deployment **only after** the local experience is stable.
+- [x] Test the full flow after a clean setup from the README.
+- [x] Improve layout, mobile responsiveness, form usability, and error messages.
+- [x] Add README: problem, architecture, setup, dataset license, evaluation, screenshots, limitations.
+- [x] Record real metrics and screenshots for GitHub and interview discussion.
+- [ ] Optional deployment **only after** the local experience is stable. **Deferred:** local MVP is complete; deployment has not been requested.
 
 **Done when:** another developer can reproduce the app using README instructions.
+
+**Verified:** A separate local clone with its own dependencies and no initial CSV, database, or fitted model downloaded the official source, repeated ETL without duplicates (10,000 observations / 339 failures), and reproduced the tracked model report exactly. All 144 backend tests, dependency checks, nine real-API browser checks, and the production build pass. The clean production preview completed prediction and SQL filtering with no browser errors. Layout checks pass at 390px and 320px, mobile controls meet 44px height, and the desktop sidebar scrolls on short screens. Navigation history and outage recovery are covered. Windows test-server startup and accessible-table overflow were fixed. [README](README.md), [verification evidence](docs/VERIFICATION.md), [real screenshots](docs/screenshots/README.md), and [portfolio/interview notes](docs/PORTFOLIO.md) complete the local MVP on `feature/milestone-5-polish`.
 
 ## 10. Scope guardrails
 
