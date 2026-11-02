@@ -3,12 +3,12 @@
 A portfolio project for exploring synthetic industrial equipment data and
 classifying operating measurements with machine learning.
 
-**Current progress:** Milestone 2 — trained ML baseline. The equipment CSV is
-validated and stored in SQLite, and an offline command trains and evaluates a
-failure classifier with saved preprocessing. The frontend is a starter page
-and the backend is a FastAPI scaffold. Application endpoints and dashboard
-features come in later milestones. See [PROJECT_PLAN.md](PROJECT_PLAN.md) for
-the scope and build order.
+**Current progress:** Milestone 3 — working FastAPI backend. The equipment CSV
+is validated and stored in SQLite, and an offline command trains and evaluates
+a failure classifier with saved preprocessing. Six API endpoints serve dataset
+analytics, filtered records, evaluation results, and predictions. The frontend
+is a starter page; the dashboard is the next milestone. See
+[PROJECT_PLAN.md](PROJECT_PLAN.md) for the scope and build order.
 
 ## Local setup (VS Code + PowerShell)
 
@@ -61,9 +61,9 @@ python -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 When opening a fresh backend terminal, first run `cd backend` and
 `.\.venv\Scripts\Activate.ps1` from the repository root.
 
-Open [API documentation](http://127.0.0.1:8000/docs). Through Milestone 2 this page
-has no application endpoints yet. A request to `/` returns 404 until a route is
-added; the server can still be running correctly.
+Open [API documentation](http://127.0.0.1:8000/docs) to try the six `/api`
+endpoints. A request to `/` returns 404 because there is no root API route;
+use `/docs` or `/api/health` to check the running server.
 
 ### 4. Start the frontend
 
@@ -245,7 +245,88 @@ loads the saved pipeline once and reuses its preprocessing for each prediction.
 The output contains `predicted_failure`, a class-1 `model_score`, and
 `model_name`. The score is a model-generated estimate, not a calibrated
 real-world failure probability. It describes a measurement snapshot and does
-not estimate time until failure. The prediction API is the next milestone.
+not estimate time until failure.
+
+## FastAPI endpoints (Milestone 3)
+
+With the backend running, the base URL is `http://127.0.0.1:8000/api`.
+Interactive request/response schemas are available in `/docs`.
+
+| Method | Endpoint | Returns |
+| --- | --- | --- |
+| GET | `/health` | Process status plus database, model, and metrics readiness |
+| GET | `/overview` | Observation count, failure count/rate, type count |
+| GET | `/charts` | Type distribution and failure rates by type |
+| GET | `/observations` | Filtered records with pagination metadata |
+| GET | `/model-metrics` | The saved held-out evaluation report |
+| POST | `/predict` | Predicted class, class-1 model score, model name |
+
+Try an analytics request from PowerShell:
+
+```powershell
+Invoke-RestMethod -Uri http://127.0.0.1:8000/api/overview
+```
+
+`failure_rate` values are fractions: `0.0339` means 3.39%. Charts return
+`type_distribution` and `failure_rates_by_type` arrays. All totals and chart
+values come from SQLite queries.
+
+Observation requests accept `limit` (1–100, default 20), `offset` (nonnegative,
+default 0), optional `type` (`L`, `M`, or `H`), and optional `failure` (`0` or
+`1`). Combined filters use AND. Results are ordered by `udi` and return
+`items`, `total`, `limit`, and `offset`; `total` counts all matching rows,
+not just the current page. An offset beyond the last row returns an empty page.
+
+```powershell
+Invoke-RestMethod -Uri 'http://127.0.0.1:8000/api/observations?limit=20&offset=0&type=M&failure=0'
+```
+
+Example prediction request using the six required measurements:
+
+```powershell
+$predictionBody = @{
+    type = "M"
+    air_temperature_k = 300.0
+    process_temperature_k = 310.0
+    rotational_speed_rpm = 1500
+    torque_nm = 40.0
+    tool_wear_min = 100
+} | ConvertTo-Json
+
+Invoke-RestMethod -Method Post -Uri http://127.0.0.1:8000/api/predict -ContentType application/json -Body $predictionBody
+```
+
+### Startup and error behavior
+
+The model and evaluation report load once during FastAPI's
+[lifespan startup](https://fastapi.tiangolo.com/advanced/events/). Training does
+not run inside the API. Restart the API after generating or replacing model
+artifacts. SQLite queries use a fresh, read-only connection per request.
+
+- `/health` responds with HTTP 200 while the process is available. Its status
+  is `ok` when all resources are ready, otherwise `degraded`, with separate
+  `database_ready`, `model_ready`, and `metrics_ready` fields.
+- Missing/unreadable database or table: analytics endpoints return HTTP 503
+  with an ETL setup instruction. A missing database is not silently created.
+- Existing empty table: counts are zero and records/chart arrays are empty.
+- Missing/unusable model: predictions return HTTP 503, while dataset analytics
+  remain available. Missing/invalid metrics return HTTP 503 for `/model-metrics`.
+- Invalid measurement fields, filters, or pagination return HTTP 422 with
+  field details. Numeric overflow is also reported as a validation error.
+
+Browser requests are permitted from `http://127.0.0.1:5173` and
+`http://localhost:5173` through explicit local
+[CORS configuration](https://fastapi.tiangolo.com/tutorial/cors/).
+
+If updating an existing checkout, refresh the backend dependencies once:
+
+```powershell
+python -m pip install -r requirements.txt
+```
+
+The pinned test client dependency is [HTTPX2](https://pypi.org/project/httpx2/),
+which the installed Starlette version supports without the older HTTPX
+deprecation warning.
 
 ## Setup checks
 
@@ -260,6 +341,9 @@ Tests use small invented fixtures, temporary databases, and temporary model
 artifacts. They run offline without the downloaded dataset, and cover ETL
 validation and rollback, strict prediction inputs, leakage prevention,
 training-only preprocessing, held-out metrics, model reload, and reproducibility.
+API tests use FastAPI TestClient with temporary SQLite/model resources to check
+all six routes, filtered pagination, empty/missing resources, startup caching,
+validation errors, and local CORS. All 142 backend tests pass.
 
 In the frontend terminal:
 
@@ -291,7 +375,7 @@ execution policy.
 
 - Backend: Python, FastAPI, Pydantic, Pandas, scikit-learn, SQLite, joblib.
 - Frontend: React, Vite, Tailwind CSS, Recharts.
-- Tests: pytest for ETL and ML; FastAPI TestClient checks are planned with the API.
+- Tests: pytest for ETL and ML, plus FastAPI TestClient with HTTPX2 for API checks.
 
 ## References
 

@@ -1,6 +1,6 @@
 # SmartFactory AI — Project Blueprint
 
-> **Status:** Milestone 2 complete. The dataset is loaded into SQLite and a reproducible baseline classifier is trained and evaluated; application APIs and dashboard features remain planned.  
+> **Status:** Milestone 3 complete. ETL, the evaluated baseline classifier, and all six FastAPI endpoints work locally; the React dashboard is next.  
 > **Working style:** We will build this together, one milestone at a time, in VS Code with Codex.  
 > **Primary goal:** A small, finished, explainable project aligned with Magna's **Intern, Smart Factory Solutions** role: Python, ETL, data analysis, ML, SQL, APIs, React, and visualizations.
 
@@ -109,7 +109,7 @@ UCI dataset (ai4i2020.csv)
 Python ETL (validate + rename + clean)
           |
           v
-      SQLite database ---------> FastAPI /analytics + /observations
+      SQLite database ---------> FastAPI /overview + /charts + /observations
           |
           v
 Train/test split (no leakage)
@@ -194,7 +194,7 @@ One core SQLite table: **`observations`**.
 
 ETL must be **idempotent**: rerunning it should not duplicate observations. Keep raw names-to-schema mapping documented. No need for accounts, users, prediction-history tables, or migrations in this MVP.
 
-## 8. API contract (planning, not implementation)
+## 8. API contract (implemented in Milestone 3)
 
 Base: `http://localhost:8000/api`
 
@@ -230,7 +230,7 @@ Base: `http://localhost:8000/api`
 }
 ```
 
-In actual code, `predicted_failure` will be an integer and `model_score` a number, not the explanatory placeholders above. Use Pydantic validation, helpful 422 errors, safe pagination limits, and explicit 503 responses when the model artifact is missing. All frontend analytics should come from real SQLite queries, not hardcoded totals.
+In the API, `predicted_failure` is an integer and `model_score` is a number; the example above uses explanatory placeholders. Pydantic validation provides helpful 422 errors, pagination limits are enforced, and missing model artifacts produce explicit 503 responses. Analytics come from real SQLite queries. Failure rates are fractions (`0.0339` means 3.39%); the frontend will format them as percentages. Observation responses contain `items`, filtered `total`, `limit`, and `offset`, ordered by `udi`.
 
 ## 9. Milestones — build one at a time
 
@@ -271,13 +271,15 @@ In actual code, `predicted_failure` will be an integer and `model_score` a numbe
 
 ### Milestone 3 — FastAPI
 
-- [ ] Implement the six API endpoints in the contract.
-- [ ] Query overview/charts/table data from SQLite.
-- [ ] Load the trained model once; validate prediction inputs.
-- [ ] Handle empty database, missing model, bad inputs, and pagination.
-- [ ] Add a few pytest/TestClient checks.
+- [x] Implement the six API endpoints in the contract.
+- [x] Query overview/charts/table data from SQLite.
+- [x] Load the trained model once; validate prediction inputs.
+- [x] Handle empty database, missing model, bad inputs, and pagination.
+- [x] Add a few pytest/TestClient checks.
 
 **Done when:** all endpoints return real data and can be tested in FastAPI's `/docs` UI.
+
+**Verified:** All six `/api` endpoints and `/docs` returned HTTP 200 through an actual local Uvicorn server using the real database and saved model. Overview reports 10,000 observations and 339 failures; combined type/failure filtering and pagination return SQL-backed results. The model and evaluation report are loaded once at lifespan startup. Missing resources return 503, invalid inputs return 422, and empty tables return zero counts/empty arrays. Explicit CORS permits the two local Vite origins. All 142 backend tests pass (100 existing + 42 API checks), and `pip check` passes. The TestClient dependency uses current supported HTTPX2. Work is on `feature/milestone-3-fastapi`; Milestones 0–2 were checkpointed on `main` first.
 
 ### Milestone 4 — React dashboard
 
