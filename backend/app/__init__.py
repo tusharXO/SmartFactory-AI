@@ -1,0 +1,1 @@
+"""SmartFactory AI backend package."""

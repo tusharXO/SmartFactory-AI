@@ -1,0 +1,73 @@
+{
+  "class_counts": {
+    "overall": {
+      "0": 9661,
+      "1": 339
+    },
+    "test": {
+      "0": 1932,
+      "1": 68
+    },
+    "train": {
+      "0": 7729,
+      "1": 271
+    }
+  },
+  "confusion_matrix_labels": [
+    0,
+    1
+  ],
+  "decision_threshold": 0.5,
+  "features": [
+    "type",
+    "air_temperature_k",
+    "process_temperature_k",
+    "rotational_speed_rpm",
+    "torque_nm",
+    "tool_wear_min"
+  ],
+  "library_versions": {
+    "joblib": "1.6.0",
+    "pandas": "3.1.0",
+    "python": "3.14.7",
+    "scikit_learn": "1.9.1"
+  },
+  "metrics": {
+    "average_precision": 0.38176196610560775,
+    "confusion_matrix": [
+      [
+        1593,
+        339
+      ],
+      [
+        12,
+        56
+      ]
+    ],
+    "f1": 0.24190064794816415,
+    "precision": 0.14177215189873418,
+    "recall": 0.8235294117647058
+  },
+  "model_name": "LogisticRegression",
+  "model_parameters": {
+    "C": 1.0,
+    "class_weight": "balanced",
+    "max_iter": 1000,
+    "solver": "lbfgs"
+  },
+  "score_note": "Class-1 model-generated score, not a calibrated real-world failure probability. Evaluation uses held-out observation labels and does not predict time to failure.",
+  "source": {
+    "database": "smartfactory.db",
+    "rows": 10000,
+    "sha256": "59df7016da4cc10bd706458025f640ba5561414ec28d373f7fe0cbbd4698f9dd",
+    "table": "observations"
+  },
+  "split": {
+    "random_state": 42,
+    "strategy": "stratified",
+    "test_rows": 2000,
+    "test_size": 0.2,
+    "train_rows": 8000
+  },
+  "target": "machine_failure"
+}
