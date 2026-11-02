@@ -314,7 +314,10 @@ def test_model_and_metrics_are_loaded_once_at_startup(resources, tmp_path):
         assert predictor_constructor.call_count == 1
 
 
-@pytest.mark.parametrize("origin", ["http://localhost:5173", "http://127.0.0.1:5173"])
+@pytest.mark.parametrize("origin", [
+    "http://localhost:5173", "http://127.0.0.1:5173",
+    "http://localhost:4173", "http://127.0.0.1:4173",
+])
 def test_cors_allows_the_local_frontend_to_submit_predictions(client, origin):
     response = client.options(
         "/api/predict",

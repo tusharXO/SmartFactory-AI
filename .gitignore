@@ -10,6 +10,8 @@ htmlcov/
 # Frontend dependencies and builds
 node_modules/
 dist/
+frontend/test-results/
+frontend/playwright-report/
 
 # Generated data and trained model artifacts
 backend/data/raw/*
