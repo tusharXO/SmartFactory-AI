@@ -5,6 +5,8 @@ classify operating measurements using a saved machine-learning pipeline.
 SmartFactory AI connects a reproducible Python ETL/training workflow to a
 FastAPI backend and a responsive React dashboard.
 
+**Live demo:** [Open SmartFactory AI](https://smartfactory-ai-ma2i.onrender.com)
+
 ![SmartFactory AI dashboard with real dataset analytics and a saved-model prediction](docs/screenshots/dashboard-desktop.png)
 
 [Mobile screenshot](docs/screenshots/dashboard-mobile.png) ·
